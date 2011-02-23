@@ -1,0 +1,29 @@
+#!/bin/sh
+HOSTNAME=`hostname`
+PWD=`pwd`
+
+if [ "$#" -eq "2" ]; then
+   VAL=$(($2-1))
+   for i in `seq 0 $VAL`
+   do
+      sed -e '/./{H;$!d;}' -e 'x;/volume '$1'/!d' /etc/glusterd/vols/eg_vol/eg_vol.$HOSTNAME.mnt-s$i.vol > vol1.tmp
+      SUB_VOL=$(cat vol1.tmp |  grep subvolumes)
+      sed -i "s|$SUB_VOL|subvolumes tmp2|" /etc/glusterd/vols/eg_vol/eg_vol.$HOSTNAME.mnt-s$i.vol
+      sed -i -e '/^volume '$1'/r '$PWD'/EG_VOL' -e '/^volume '$1'/d' /etc/glusterd/vols/eg_vol/eg_vol.$HOSTNAME.mnt-s$i.vol
+      sed -i "s|subvolumes tmp1|$SUB_VOL|" /etc/glusterd/vols/eg_vol/eg_vol.$HOSTNAME.mnt-s$i.vol
+      sed -i "s|subvolumes tmp2|subvolumes eg|" /etc/glusterd/vols/eg_vol/eg_vol.$HOSTNAME.mnt-s$i.vol
+   done 
+elif [ "$#" -eq "1" ]; then
+   sed -e '/./{H;$!d;}' -e 'x;/volume '$1'/!d' /etc/glusterd/vols/eg_vol/eg_vol-fuse.vol > vol2.tmp
+   SUB_VOL=$(cat vol2.tmp |  grep subvolumes)
+   sed -i "s|$SUB_VOL|subvolumes tmp2|" /etc/glusterd/vols/eg_vol/eg_vol-fuse.vol
+   sed -i "s|$SUB_VOL|subvolumes tmp2|" /etc/glusterd/nfs/nfs-server.vol
+   sed -i -e '/^volume '$1'/r EG_VOL' -e '/^volume '$1'/d' /etc/glusterd/vols/eg_vol/eg_vol-fuse.vol
+   sed -i -e '/^volume '$1'/r EG_VOL' -e '/^volume '$1'/d' /etc/glusterd/nfs/nfs-server.vol
+   sed -i "s|subvolumes tmp1|$SUB_VOL|" /etc/glusterd/vols/eg_vol/eg_vol-fuse.vol
+   sed -i "s|subvolumes tmp1|$SUB_VOL|" /etc/glusterd/nfs/nfs-server.vol
+   sed -i "s|subvolumes tmp2|subvolumes eg|" /etc/glusterd/vols/eg_vol/eg_vol-fuse.vol
+   sed -i "s|subvolumes tmp2|subvolumes eg|" /etc/glusterd/nfs/nfs-server.vol
+fi
+
+
